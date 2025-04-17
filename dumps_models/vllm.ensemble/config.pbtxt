@@ -1,0 +1,82 @@
+name: "vllm.ensemble"
+platform: "ensemble"
+max_batch_size: 0
+
+# Inputs to the model
+input [
+  {
+    name: "text_input"
+    data_type: TYPE_STRING
+    dims: [ 1 ]
+  },
+  {
+    name: "stream"
+    data_type: TYPE_BOOL
+    dims: [ 1 ]
+  },
+  {
+    name: "sampling_parameters"
+    data_type: TYPE_STRING
+    dims: [ 1 ]
+  },
+  {
+    name: "exclude_input_in_output"
+    data_type: TYPE_BOOL
+    dims: [ 1 ]
+  }
+]
+
+# Outputs of the model
+output [
+  {
+    name: "text_output"
+    data_type: TYPE_STRING
+    dims: [ -1 ]
+  }
+]
+
+# Ensemble scheduling
+ensemble_scheduling {
+  step [
+    {
+      model_name: "vllm.tokenizer"
+      model_version: -1
+      input_map {
+        key: "text_input"
+        value: "text_input"
+      }
+      output_map {
+        key: "text_template"
+        value: "text_input"
+      }
+    },
+    {
+      model_name: "vllm.model"
+      model_version: -1
+      input_map [
+        {
+          key: "text_input"
+          value: "text_input"
+        },
+        {
+          key: "stream"
+          value: "stream"
+        },
+        {
+          key: "sampling_parameters"
+          value: "sampling_parameters"
+        },
+        {
+          key: "exclude_input_in_output"
+          value: "exclude_input_in_output"
+        }
+      ]
+      output_map [
+        {
+          key: "text_output"
+          value: "text_output"
+        }
+      ]
+    }
+  ]
+}
